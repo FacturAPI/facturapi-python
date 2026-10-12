@@ -1,0 +1,8 @@
+include LICENSE
+include README.md
+include README.es-MX.md
+include requirements-docs.txt
+recursive-include docs *.md *.png *.svg
+recursive-include examples *.py
+recursive-include scripts *.py
+recursive-include tests *.py *.yaml

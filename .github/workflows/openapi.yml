@@ -1,0 +1,40 @@
+name: update-openapi-client
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 12 * * 1'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Install generator dependencies
+        run: python -m pip install -r requirements.txt -r requirements-test.txt
+      - name: Generate the SDK from the current OpenAPI document
+        run: python scripts/generate_openapi.py
+      - name: Verify generated client
+        run: |
+          make lint
+          pytest -x
+      - name: Create update pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          branch: codex/update-openapi-client
+          delete-branch: true
+          commit-message: 'chore: update generated OpenAPI client'
+          title: 'chore: update generated OpenAPI client'
+          body: |
+            Automated SDK update generated from Facturapi's public OpenAPI
+            document. CI verifies formatting, typing, and tests before merge.
+          labels: |
+            automated
+            openapi

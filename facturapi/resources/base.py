@@ -290,8 +290,7 @@ class Queryable(Resource):
         """
         q = cls._query_params(**query_params)
         response = client.get(cls._resource, q.dict())
-        items = response['data']
-        return len(items)
+        return response.get('total_results', len(response['data']))
 
     @classmethod
     def all(cls, **query_params) -> Generator[Resource, None, None]:
@@ -309,13 +308,26 @@ class Queryable(Resource):
 
         """
         q = cls._query_params(**query_params)
-        next_page_uri = f'{cls._resource}?{urlencode(q.dict())}'
+        params = q.dict()
+        encoded_params = urlencode(params)
+        next_page_uri = (
+            f'{cls._resource}?{encoded_params}'
+            if encoded_params
+            else cls._resource
+        )
         current_page = 1
         while next_page_uri:
             page = client.get(next_page_uri)
             yield from (cls._from_dict(item) for item in page['data'])
             next_page_uri = ''
-            if current_page < page['total_pages']:
+
+            if q.pagination == 'cursor':
+                next_cursor = page.get('next_cursor')
+                if next_cursor:
+                    params.pop('before', None)
+                    params['after'] = next_cursor
+                    next_page_uri = f'{cls._resource}?{urlencode(params)}'
+            elif current_page < page['total_pages']:
                 current_page += 1
-                q.page = current_page
-                next_page_uri = f'{cls._resource}?{urlencode(q.dict())}'
+                params['page'] = current_page
+                next_page_uri = f'{cls._resource}?{urlencode(params)}'

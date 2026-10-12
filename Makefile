@@ -2,8 +2,8 @@ SHELL := bash
 PATH := ./venv/bin:${PATH}
 PYTHON = python3.13
 PROJECT = facturapi
-isort = isort $(PROJECT) tests setup.py examples
-black = black -S -l 79 --target-version py313 $(PROJECT) tests setup.py examples
+isort = isort $(PROJECT) tests scripts setup.py examples
+black = black -S -l 79 --target-version py313 $(PROJECT) tests scripts setup.py examples
 
 
 all: test
@@ -21,15 +21,21 @@ install-test: install
 test: clean install-test lint
 		pytest
 
+generate:
+		python scripts/generate_openapi.py
+
+generate-check:
+		python scripts/generate_openapi.py --check
+
 format:
 		$(isort)
 		$(black)
 
 lint:
-		flake8 $(PROJECT) tests setup.py
+		flake8 $(PROJECT) tests scripts setup.py
 		$(isort) --check-only
 		$(black) --check
-		mypy $(PROJECT) tests
+		mypy $(PROJECT) tests scripts
 
 clean:
 		rm -rf `find . -name __pycache__`
@@ -46,9 +52,12 @@ clean:
 		rm -rf build
 		rm -rf dist
 
-release: test clean
-		python setup.py sdist bdist_wheel
-		twine upload dist/*
+build: clean
+		python -m build
+		python -m twine check dist/*
+
+release: test build
+		@echo "Create a GitHub release to publish with PyPI Trusted Publishing."
 
 
-.PHONY: all install-test test format lint clean release
+.PHONY: all install-test test generate generate-check format lint clean build release

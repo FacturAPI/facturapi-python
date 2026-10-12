@@ -106,7 +106,7 @@ class InvoiceRequest(BaseModel):
     relation: InvoiceRelation | None = None
     pdf_custom_section: str | None = None
     addenda: str | None = None
-    namespaces: Namespace | None = None
+    namespaces: list[Namespace] | None = None
 
 
 @dataclass

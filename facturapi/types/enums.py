@@ -71,7 +71,7 @@ class PaymentForm(str, Enum):
     tarjeta_de_credito = '04'
     monedero_electronico = '05'
     dinero_electronico = '06'
-    vales_de_despensa = '06'
+    vales_de_despensa = '08'
     dacion_en_pago = '12'
     pago_por_subrogacion = '13'
     pago_por_consignacion = '14'
