@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "facturapi"
+dynamic = ["version"]
+description = "Official Python SDK for the Facturapi API"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+  { name = "Facturapi", email = "contacto@facturapi.io" },
+]
+keywords = [
+  "cfdi",
+  "factura",
+  "facturacion-electronica",
+  "mexico",
+  "sat",
+]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Operating System :: OS Independent",
+  "Typing :: Typed",
+]
+dependencies = [
+  "httpx>=0.28.0,<1.0.0",
+  "pydantic>=2.13.0,<3.0.0",
+]
+
+[project.urls]
+Homepage = "https://www.facturapi.io"
+Documentation = "https://docs.facturapi.io"
+Repository = "https://github.com/FacturAPI/facturapi-python"
+Issues = "https://github.com/FacturAPI/facturapi-python/issues"
+
+[tool.setuptools.dynamic]
+version = { attr = "facturapi.version.__version__" }
+
+[tool.setuptools.package-data]
+facturapi = ["py.typed"]
+
+[tool.setuptools.packages.find]
+include = ["facturapi*"]

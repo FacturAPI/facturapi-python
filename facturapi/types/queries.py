@@ -3,7 +3,7 @@ from typing import Annotated, Any
 
 from pydantic import BaseModel, Field
 
-MAX_PAGE_SIZE = 50
+MAX_PAGE_SIZE = 100
 MIN_PAGE = 1
 
 PageSize = Annotated[int, Field(gt=0, le=MAX_PAGE_SIZE)]
@@ -52,6 +52,9 @@ class BaseQuery(BaseModel):
     """
 
     q: str | None = None
+    pagination: str | None = None
+    after: str | None = None
+    before: str | None = None
     limit: PageSize | None = MAX_PAGE_SIZE
     page: Page | None = MIN_PAGE
     date: DateFilter | None = None

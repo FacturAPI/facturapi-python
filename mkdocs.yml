@@ -1,7 +1,7 @@
 site_name: "facturapi-python"
 site_description: "Facturapi Python Library"
-repo_url: "https://github.com/cuenca-mx/facturapi-python"
-repo_name: "cuenca-mx/facturapi-python"
+repo_url: "https://github.com/FacturAPI/facturapi-python"
+repo_name: "FacturAPI/facturapi-python"
 
 theme:
   name: material
@@ -21,8 +21,6 @@ plugins:
           rendering:
             show_root_full_path: no
             show_source: no
-      watch:
-        - src/facturapi
 
 nav:
   - Overview: index.md
@@ -30,3 +28,4 @@ nav:
       - Base code: resources/resources.md
       - Customers: resources/customers.md
       - Invoices: resources/invoices.md
+      - Generated API: openapi.md

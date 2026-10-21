@@ -18,6 +18,16 @@ class MultipleResultsFound(FacturapiException):
 class FacturapiResponseException(FacturapiException):
     json: dict[str, Any]
     status_code: int
+    headers: dict[str, str] | None = None
+
+    @property
+    def message(self) -> str:
+        return str(self.json.get('message', 'Facturapi request failed'))
+
+    @property
+    def code(self) -> str | None:
+        value = self.json.get('code')
+        return str(value) if value is not None else None
 
     def __str__(self) -> str:
-        return repr(self)
+        return self.message

@@ -1,97 +1,166 @@
 <p align="center">
-    <a href="https://facturapi.io">
-        <img alt="Facturapi Logo" src="./docs/images/facturapi-logo.svg" width="200" />
-    </a>
+  <a href="https://facturapi.io">
+    <img alt="Facturapi Logo" src="./docs/images/facturapi-logo.svg" width="200" />
+  </a>
 </p>
-<h1 align="center">
-    FacturAPI – Python Client Library
-</h1>
 
-![test](https://github.com/cuenca-mx/facturapi-python/workflows/test/badge.svg)
-[![codecov](https://codecov.io/gh/cuenca-mx/facturapi-python/branch/main/graph/badge.svg?token=U89Q4PR339)](https://codecov.io/gh/cuenca-mx/facturapi-python)
-[![PyPI version](https://badge.fury.io/py/facturapi.svg)](https://badge.fury.io/py/facturapi)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+# Facturapi Python SDK
+
+[![tests](https://github.com/FacturAPI/facturapi-python/actions/workflows/test.yml/badge.svg)](https://github.com/FacturAPI/facturapi-python/actions/workflows/test.yml)
+[![PyPI](https://img.shields.io/pypi/v/facturapi.svg)](https://pypi.org/project/facturapi/)
+[![Python](https://img.shields.io/pypi/pyversions/facturapi.svg)](https://pypi.org/project/facturapi/)
+
+The official synchronous Python client for the
+[Facturapi API](https://docs.facturapi.io/en/api/). It supports every operation
+in the public OpenAPI document while keeping the original `Customer` and
+`Invoice` class API backwards compatible.
 
 [Español](./README.es-MX.md)
 
-This is a Python library for [FacturAPI](https://www.facturapi.io)
-
-**⚠️Warning: This is still an unofficial library and it is still under development. This is not a final product.⚠️**
-
-FacturAPI makes it easy for developers to generate valid Invoices in Mexico (known as Factura Electrónica or CFDI).
-
-This library is based on [`cuenca-python`](https://github.com/cuenca-mx/cuenca-python) 💙.
-
-## 💻 Installation
-
-Just use `pip` to install de library:
+## Install
 
 ```bash
 pip install facturapi
 ```
 
-## 🚀 Getting started
+Python 3.10 or newer is required.
 
-### Authenticate with your API Key
-Be sure to create a free account on [FacturAPI](https://www.facturapi.io) and have access to your test or live API keys.
+## Quick start
 
-There are two ways to configure your API Key to use the library:
+```python
+import os
 
-1. **Environment variable:** Just set an environment variable and the library will automatically use it:
-   
-   ```bash
-   export FACTURAPI_KEY=YOUR_API_KEY
-   ```
+from facturapi import Facturapi
 
-2. **Using the `configure` method:** If you want to set it in the code, you can import and use the `configure` method:
+facturapi = Facturapi(os.environ["FACTURAPI_KEY"])
 
-    ```python
-    from facturapi import configure
-    
-    configure(api_key='YOUR_API_KEY')
-    ```
+customer = facturapi.customers.create(
+    {
+        "legal_name": "Dunder Mifflin",
+        "tax_id": "ABC101010111",
+        "tax_system": "601",
+        "email": "accounting@example.com",
+        "address": {"zip": "01234", "country": "MEX"},
+    }
+)
 
-### Create a customer
-After configuring the API Key, you can use the client to perform many actions on the resources, for example to create
-a Customer:
+invoice = facturapi.invoices.create(
+    {
+        "customer": customer["id"],
+        "payment_form": "03",
+        "items": [
+            {
+                "quantity": 1,
+                "product": {
+                    "description": "Consulting",
+                    "product_key": "80101500",
+                    "price": 1000,
+                },
+            }
+        ],
+    }
+)
+
+pdf = facturapi.invoices.download_pdf(invoice["id"])
+```
+
+If the key is omitted, `Facturapi()` reads `FACTURAPI_KEY`. The timeout can be
+set per client or through `FACTURAPI_TIMEOUT`.
+
+```python
+with Facturapi("sk_test_...", timeout=30) as facturapi:
+    result = facturapi.invoices.list(
+        {
+            "status": ["valid", "canceled"],
+            "date": {"gte": "2026-01-01T00:00:00Z"},
+        }
+    )
+```
+
+## API resources
+
+The instance client follows the same resource layout as `facturapi-node`:
+
+- `customers`
+- `products`
+- `invoices`
+- `receipts`
+- `retentions`
+- `organizations`, including users, roles, API keys, certificates, and series
+- `webhooks`
+- `tools`
+- `catalogs`
+- `nomina_catalogs`
+- `carta_porte_catalogs`
+- `comercio_exterior_catalogs`
+
+Methods use `snake_case`, accept normal Python dictionaries, and return decoded
+JSON. Download methods return `bytes`. Multipart organization methods accept an
+`httpx`-compatible `files` mapping.
+
+```python
+files = {
+    "cer": ("certificate.cer", open("certificate.cer", "rb")),
+    "key": ("certificate.key", open("certificate.key", "rb")),
+}
+facturapi.organizations.upload_certificate(
+    "org_123",
+    files,
+    {"password": "certificate-password"},
+)
+```
+
+For parameter and payload details, use the
+[Facturapi API reference](https://docs.facturapi.io/en/api/). Each generated
+method includes its OpenAPI operation and endpoint in its docstring.
+
+## Backwards compatibility
+
+The original class API still works:
 
 ```python
 import facturapi
-from facturapi.resources.customers import CustomerRequest, CustomerUpdateRequest
+from facturapi.resources.customers import CustomerRequest
 
-customer = facturapi.Customer.create(data=CustomerRequest(
-    legal_name='Frida Kahlo',
-    tax_id='ABCD111111CBA',
-    email='frida_kahlo@test.com',
-))
+facturapi.configure(api_key="sk_test_...")
+customer = facturapi.Customer.create(
+    CustomerRequest(
+        legal_name="Dunder Mifflin",
+        tax_id="ABC101010111",
+        tax_system="601",
+        email="accounting@example.com",
+        address={"zip": "01234", "country": "MEX"},
+    )
+)
 ```
 
-For more details on the data used to create a Customer and other resources, be sure to check out the [docs](http://docs.facturapi.io).
+## OpenAPI updates
 
-More examples can be found on the [examples](./examples/) directory.
+The resource layer is generated from Facturapi's public OpenAPI document:
 
-## 📚 Documentation
+```bash
+make generate
+make generate-check
+```
 
-You can checkout Facturapi's [docs](http://docs.facturapi.io) for more info on the API and its resources.
+The `update-openapi-client` GitHub Actions workflow checks the current document
+weekly and opens a pull request when generated methods change. Generated code
+lives in `facturapi/_generated.py`; edit the generator instead of that file.
 
-Or checkout the library's [docs](https://cuenca-mx.github.io/facturapi-python/) for usage and more technical details.
+## Development and releases
 
-## 💡 Contribute
-### Found a bug?
-Please create an issue addressing the bug and how to replicate it.
-### Want to contribute?
-Be sure to fork the repo and send your PR! Any and all help is appreciated.
-Also don't forget to keep the coverage above 98%, we love tested code!
+```bash
+make venv
+make test
+make build
+```
 
-### Contacts:
-- **Facturapi:** contacto@facturapi.io
+Publishing uses PyPI Trusted Publishing. Maintainers publish a GitHub release;
+the release workflow builds, verifies, and uploads the wheel and source archive
+without a long-lived PyPI token. The PyPI project must trust the
+`FacturAPI/facturapi-python` repository, the `release.yml` workflow, and the
+`pypi` environment.
 
-- **Cuenca:** dev@cuenca.com
+## License
 
----
-Developed and maintained with 💙 by [Cuenca](https://github.com/cuenca-mx)
-<p align="center">
-    <a href="https://cuenca.com/">
-        <img alt="Cuenca Logo" src="./docs/images/cuenca-full-logo.svg" width="200" />
-    </a>
-</p>
+[MIT](./LICENSE)
